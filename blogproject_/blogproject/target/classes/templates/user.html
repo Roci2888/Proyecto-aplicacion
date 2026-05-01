@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Usuario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- HEADER -->
+<div class="flex justify-between items-center bg-white shadow p-4">
+    <h2 class="text-xl font-bold">
+        Bienvenido, <span th:text="${user.username}"></span>
+    </h2>
+
+    <a href="/logout"
+       class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+        Cerrar sesión
+    </a>
+</div>
+
+<!-- CONTENIDO -->
+<div class="p-6">
+    <p class="text-gray-600">
+        Este es tu panel de usuario
+    </p>
+</div>
+
+</body>
+</html>
