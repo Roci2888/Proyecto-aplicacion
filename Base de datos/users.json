@@ -1,0 +1,34 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin_user",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "juan_perez",
+      "password": "password123",
+      "role": "user"
+    },
+    {
+      "id": 3,
+      "username": "maria_garcia",
+      "password": "maria2024",
+      "role": "user"
+    },
+    {
+      "id": 4,
+      "username": "carlos_lopez",
+      "password": "carlos123",
+      "role": "user"
+    },
+    {
+      "id": 5,
+      "username": "ana_rodriguez",
+      "password": "ana456",
+      "role": "admin"
+    }
+  ]
+}
