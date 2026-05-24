@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Ficha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-10">
+
+<div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-lg">
+
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Editar ficha</h2>
+        <a href="/user" class="text-sm text-gray-500 hover:underline">← Volver al panel</a>
+    </div>
+
+    <div class="mb-5">
+        <span th:if="${blog.status == 'PUBLIC'}"
+              class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+            ● Publicada
+        </span>
+        <span th:if="${blog.status == 'DRAFT'}"
+              class="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full">
+            ● Borrador
+        </span>
+    </div>
+
+    <form th:action="@{'/blog/' + ${blog.id} + '/edit'}" method="post" class="space-y-4">
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la ficha</label>
+            <input type="text" name="name"
+                   th:value="${blog.name}"
+                   class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   required>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+            <textarea name="description" rows="4"
+                      class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                      th:text="${blog.description}"></textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                URL de imagen de portada <span class="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input type="text" name="coverImageUrl"
+                   th:value="${blog.coverImageUrl}"
+                   placeholder="https://..."
+                   class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+
+            <div th:if="${blog.coverImageUrl != null}" class="mt-2">
+                <img th:src="${blog.coverImageUrl}"
+                     class="h-24 rounded-lg object-cover border"
+                     alt="Portada actual">
+                <p class="text-xs text-gray-400 mt-1">Imagen actual. Ingresa una nueva URL para reemplazarla.</p>
+            </div>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 font-medium transition">
+            Guardar cambios
+        </button>
+
+    </form>
+
+    <div class="mt-6 pt-5 border-t border-gray-200 space-y-3">
+
+        <p class="text-sm font-medium text-gray-700">Acciones de publicación</p>
+
+        <form th:if="${blog.status == 'DRAFT'}"
+              th:action="@{'/blog/' + ${blog.id} + '/publish'}" method="post">
+            <button type="submit"
+                    class="w-full bg-green-500 text-white py-2.5 rounded-lg hover:bg-green-600 font-medium transition">
+                🌐 Publicar ficha
+            </button>
+        </form>
+        <p th:if="${blog.status == 'DRAFT'}" class="text-xs text-gray-400 text-center -mt-1">
+            Al publicar, tu ficha anterior (si existe) pasará a borrador automáticamente.
+        </p>
+
+        <form th:if="${blog.status == 'PUBLIC'}"
+              th:action="@{'/blog/' + ${blog.id} + '/unpublish'}" method="post">
+            <button type="submit"
+                    class="w-full bg-yellow-400 text-yellow-900 py-2.5 rounded-lg hover:bg-yellow-500 font-medium transition">
+                ⏸ Pasar a borrador
+            </button>
+        </form>
+
+        <form th:action="@{'/blog/' + ${blog.id} + '/delete'}" method="post"
+              onsubmit="return confirm('¿Eliminar esta ficha y todos sus posts? Esta acción no se puede deshacer.')">
+            <button type="submit"
+                    class="w-full bg-red-100 text-red-600 py-2.5 rounded-lg hover:bg-red-200 font-medium transition">
+                🗑 Eliminar ficha
+            </button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

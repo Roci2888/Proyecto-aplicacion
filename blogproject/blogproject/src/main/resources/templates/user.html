@@ -1,201 +1,182 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Panel Usuario</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen">
 
-<main class="flex-1 p-6">
-
-    <!--  MENSAJE -->
-    <p th:if="${param.created}"
-       class="bg-green-100 text-green-700 p-3 rounded mb-4">
-        Blog creado correctamente
-    </p>
-
-    <h2 class="text-2xl font-bold mb-6">
-        Panel de usuario
-    </h2>
-
-    <!-- NAVBAR -->
-    <div class="bg-white shadow flex justify-between items-center px-6 py-4">
-        <h1 class="text-xl font-bold text-gray-800">Mi Panel</h1>
-
-        <div class="flex items-center space-x-4">
-        <span class="text-gray-700">
-            Hola, <span th:text="${user.username}"></span>
+<nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-gray-800">Mi Panel</h1>
+    <div class="flex items-center gap-4">
+        <span class="text-gray-600 text-sm">Hola,
+            <span class="font-semibold" th:text="${user.username}"></span>
         </span>
+        <a href="/logout"
+           class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600 transition">
+            Cerrar sesión
+        </a>
+    </div>
+</nav>
 
-            <a href="/logout"
-               class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                Cerrar sesión
-            </a>
-        </div>
+<div class="max-w-4xl mx-auto mt-4 px-4">
+    <p th:if="${param.created}"    class="bg-green-100 text-green-700 p-3 rounded-lg mb-2 text-sm">✓ Ficha creada como borrador correctamente.</p>
+    <p th:if="${param.updated}"    class="bg-blue-100 text-blue-700 p-3 rounded-lg mb-2 text-sm">✓ Cambios guardados correctamente.</p>
+    <p th:if="${param.published}"  class="bg-green-100 text-green-700 p-3 rounded-lg mb-2 text-sm">✓ Ficha publicada. Ya es visible al público.</p>
+    <p th:if="${param.unpublished}"class="bg-yellow-100 text-yellow-700 p-3 rounded-lg mb-2 text-sm">⏸ Ficha movida a borradores.</p>
+    <p th:if="${param.deleted}"    class="bg-red-100 text-red-700 p-3 rounded-lg mb-2 text-sm">🗑 Ficha eliminada.</p>
+</div>
+
+<main class="max-w-4xl mx-auto px-4 py-6">
+
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Mis Fichas</h2>
+        <a href="/blog/create"
+           class="bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm hover:bg-blue-600 transition font-medium">
+            + Nueva ficha
+        </a>
     </div>
 
-    <!-- contenido -->
-    <div class="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+    <div th:if="${blogs != null and not #lists.isEmpty(blogs)}" class="space-y-4">
 
-        <div th:if="${blog == null}" class="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+        <div th:each="blog : ${blogs}"
+             class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
 
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">
-                Crear nuevo Blog
-            </h2>
+            <img th:if="${blog.coverImageUrl != null and blog.coverImageUrl != ''}"
+                 th:src="${blog.coverImageUrl}"
+                 class="w-full h-36 object-cover">
 
-            <form action="/blog/create" method="post" class="space-y-4">
+            <div class="p-5">
 
-                <input type="text" name="name" placeholder="Nombre del blog"
-                       class="w-full border p-3 rounded-lg" required>
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-lg font-bold text-gray-800"
+                        th:text="${blog.name}"></h3>
 
-                <textarea name="description" placeholder="Descripción"
-                          class="w-full border p-3 rounded-lg" required></textarea>
+                    <span th:if="${blog.status == 'PUBLIC'}"
+                          class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+                        ● Publicada
+                    </span>
+                    <span th:if="${blog.status == 'DRAFT'}"
+                          class="bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full">
+                        ● Borrador
+                    </span>
+                </div>
 
-                <button type="submit"
-                        class="w-full bg-blue-500 text-white py-3 rounded-lg">
-                    Crear blog
-                </button>
+                <p class="text-gray-500 text-sm mb-4"
+                   th:text="${blog.description}"></p>
 
-            </form>
+                <div class="flex flex-wrap gap-2">
 
-        </div>
-        <div th:if="${blog != null}" class="mt-10">
+                    <a th:href="@{'/blog/' + ${blog.id}}"
+                       class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
+                        Ver ficha
+                    </a>
 
-            <div class="flex gap-6">
+                    <a th:href="@{'/blog/' + ${blog.id} + '/edit'}"
+                       class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm hover:bg-blue-100 transition">
+                        Editar
+                    </a>
 
+                    <a th:href="@{/post/new(blogId=${blog.id})}"
+                       class="bg-purple-50 text-purple-600 px-4 py-2 rounded-lg text-sm hover:bg-purple-100 transition">
+                        + Entrada
+                    </a>
 
-
-
-
-            </div>
-
-        </div>
-
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">
-                Tu Blog
-            </h2>
-
-            <p class="text-gray-600 mb-4">
-                <strong th:text="${blog.name}"></strong>
-            </p>
-
-            <div class="flex gap-4">
-
-                <!--  VER el BLOG -->
-                <a th:href="@{'/blog/' + ${blog.id}}"
-                   class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
-                    Ver blog
-                </a>
-
-                <!-- Crear nueva entrada -->
-                <a th:href="@{/post/new(blogId=${blog.id})}"
-                   class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                    Crear entrada
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-        <!-- SIDEBAR  -->
-        <aside class="w-64 bg-white p-4 rounded-xl shadow">
-
-            <h3 class="font-bold mb-4">Menú</h3>
-
-            <a th:href="@{/user(view='posts')}"
-               class="block text-blue-500 hover:underline">
-                Ver entradas
-            </a>
-
-        </aside>
-
-
-        <div class="flex-1">
-
-            <div th:if="${view == 'posts'}"
-                 class="bg-white p-6 rounded-xl shadow">
-
-                <h2 class="text-xl font-bold mb-4">
-                    Mis entradas
-                </h2>
-
-                <p th:if="${posts == null or #lists.isEmpty(posts)}"
-                   class="text-gray-500">
-                    No tienes entradas aún
-                </p>
-
-                <!-- LISTA -->
-                <div th:each="post : ${posts}"
-                     class="flex justify-between items-center border-b py-3">
-
-                    <div>
-                        <p class="font-semibold"
-                           th:text="${post.title}"></p>
-
-                        <p class="text-sm text-gray-500"
-                           th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}">
-                        </p>
-                    </div>
-
-                    <form action="/post/delete" method="post">
-                        <input type="hidden" name="postId" th:value="${post.id}">
-                        <input type="hidden" name="blogId" th:value="${blog.id}">
-
+                    <form th:if="${blog.status == 'DRAFT'}"
+                          th:action="@{'/blog/' + ${blog.id} + '/publish'}" method="post" class="inline">
                         <button type="submit"
-                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 transition">
+                            Publicar
+                        </button>
+                    </form>
+
+                    <form th:if="${blog.status == 'PUBLIC'}"
+                          th:action="@{'/blog/' + ${blog.id} + '/unpublish'}" method="post" class="inline">
+                        <button type="submit"
+                                class="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg text-sm hover:bg-yellow-500 transition">
+                            Despublicar
+                        </button>
+                    </form>
+
+                    <form th:action="@{'/blog/' + ${blog.id} + '/delete'}" method="post" class="inline"
+                          onsubmit="return confirm('¿Eliminar esta ficha?')">
+                        <button type="submit"
+                                class="bg-red-50 text-red-500 px-4 py-2 rounded-lg text-sm hover:bg-red-100 transition">
                             Eliminar
                         </button>
                     </form>
 
                 </div>
 
-                <!-- PAGINACIÓN -->
-                <div class="flex justify-center mt-8"
-                     th:if="${totalPages > 1}">
+            </div>
+        </div>
+    </div>
 
-                    <div class="flex items-center gap-1 bg-white shadow px-4 py-2 rounded-xl">
+    <div th:if="${blogs == null or #lists.isEmpty(blogs)}"
+         class="bg-white rounded-xl shadow-sm border border-dashed border-gray-300 p-12 text-center">
+        <p class="text-gray-400 text-lg mb-2">No tienes fichas aún</p>
+        <p class="text-gray-400 text-sm mb-6">Crea tu primera ficha para empezar a mostrar tu trabajo</p>
+        <a href="/blog/create"
+           class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition font-medium">
+            Crear primera ficha
+        </a>
+    </div>
 
-                        <a th:if="${currentPage > 0}"
-                           th:href="@{/user(view='posts', page=${currentPage - 1})}"
-                           class="px-3 py-1 rounded-lg hover:bg-gray-200">
-                            ←
-                        </a>
+    <div class="mt-10">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Mis entradas</h2>
+            <a th:href="@{/user(view='posts')}"
+               class="text-blue-500 text-sm hover:underline">Ver todas →</a>
+        </div>
 
-                        <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+        <div th:if="${view == 'posts'}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
 
-                <a th:href="@{/user(view='posts', page=${i})}"
-                   th:text="${i + 1}"
-                   class="px-3 py-1 rounded-lg"
-                   th:classappend="${i == currentPage}
-                       ? 'bg-blue-500 text-white font-semibold'
-                       : 'hover:bg-gray-200'">
-                </a>
+            <p th:if="${posts == null or #lists.isEmpty(posts)}"
+               class="text-gray-400 text-center py-6">No tienes entradas aún.</p>
 
-            </span>
-
-                        <a th:if="${currentPage < totalPages - 1}"
-                           th:href="@{/user(view='posts', page=${currentPage + 1})}"
-                           class="px-3 py-1 rounded-lg hover:bg-gray-200">
-                            →
-                        </a>
-
-                    </div>
-
+            <div th:each="post : ${posts}"
+                 class="flex justify-between items-center border-b border-gray-100 py-3 last:border-0">
+                <div>
+                    <p class="font-semibold text-gray-800" th:text="${post.title}"></p>
+                    <p class="text-xs text-gray-400"
+                       th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}"></p>
                 </div>
+                <form action="/post/delete" method="post">
+                    <input type="hidden" name="postId" th:value="${post.id}">
+                    <input type="hidden" name="blogId" th:value="${blog != null ? blog.id : ''}">
+                    <button type="submit"
+                            class="text-red-500 text-sm px-3 py-1 rounded hover:bg-red-50 transition">
+                        Eliminar
+                    </button>
+                </form>
+            </div>
 
+            <div class="flex justify-center mt-6" th:if="${totalPages > 1}">
+                <div class="flex items-center gap-1">
+                    <a th:if="${currentPage > 0}"
+                       th:href="@{/user(view='posts', page=${currentPage - 1})}"
+                       class="px-3 py-1.5 rounded-lg hover:bg-gray-100 text-sm">← Ant.</a>
+
+                    <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <a th:href="@{/user(view='posts', page=${i})}"
+                           th:text="${i + 1}"
+                           class="px-3 py-1.5 rounded-lg text-sm"
+                           th:classappend="${i == currentPage} ? 'bg-blue-500 text-white font-semibold' : 'hover:bg-gray-100'">
+                        </a>
+                    </span>
+
+                    <a th:if="${currentPage < totalPages - 1}"
+                       th:href="@{/user(view='posts', page=${currentPage + 1})}"
+                       class="px-3 py-1.5 rounded-lg hover:bg-gray-100 text-sm">Sig. →</a>
+                </div>
             </div>
 
         </div>
-
     </div>
 
 </main>
-
 
 </body>
 </html>
