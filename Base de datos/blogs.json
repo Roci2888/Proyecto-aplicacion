@@ -1,0 +1,31 @@
+[
+  {
+    "id": "1",
+    "userId": "user_001",
+    "name": "Mi viaje por Japón",
+    "description": "Un recorrido por Tokio, Kioto y Osaka, con consejos para viajeros primerizos."
+  },
+  {
+    "id": "2",
+    "userId": "user_002",
+    "name": "Recetas veganas fáciles",
+    "description": "Platos saludables y rápidos para incorporar más vegetales a tu dieta diaria."
+  },
+  {
+    "id": "3",
+    "userId": "user_003",
+    "name": "Desarrollo con Python",
+    "description": "Tutoriales y buenas prácticas para programar en Python desde cero."
+  },
+  {
+    "id": "4",
+    "userId": "user_001",
+    "name": "Fotografía de paisajes",
+    "description": "Técnicas de composición, iluminación y edición para capturar la naturaleza."
+  },
+  {
+    "id": "5",
+    "userId": "user_004",
+    "name": "Mindfulness y meditación",
+    "description": "Ejercicios prácticos para reducir el estrés y mejorar la concentración."
+  }]
