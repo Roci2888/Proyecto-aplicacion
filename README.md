@@ -8,13 +8,15 @@ Visita el sitio aquí: [Link]
 
 Este sitio web usa los diseños de [Thymeleaf](https://www.thymeleaf.org/), esta escrito en el lenguaje de programación Java. Usa los paquetes de desarrollo Spring Boot en Java.
 
-En el futuro, queremos que el sitio también utilize Google Cloud Services y Google Safesearch para almacenamiento y filtrado de imágenes.
 
 ## Cómo usar
 
-1. Crea una cuenta nueva e inicia sesión.
-2. ¡Crea, edita y publica tus blogs para que todo el mundo los vea!
-3. Añade tu enlace en tu perfil para que tus seguidores sepan qué otros sitios web seguirte y conozcan un poco más sobre ti.
+Por ahora aun no se crea los Archivos Docker para levantarlo y poder ver la imagen.
+Paso a paso para poder ejecutar el codigo
+1. Ejecutar el codigo en la clase BlogproyectApplication
+2. Para poder hacer el registro e inicio de sesion se tiene que utilizar MongoDB para que el codigo funcione (Para nuestro caso se utiliza "mongod" que esta en la carpeta de MongoDB)
+Ruta MongoDB (Archivos de Programa -> MongoDB -> Server -> 8.3 -> bin -> mongod (Aplicacion)
+3. Abrir en el navegador en "http://localhost:8080"
 
 ## Licencia
 
