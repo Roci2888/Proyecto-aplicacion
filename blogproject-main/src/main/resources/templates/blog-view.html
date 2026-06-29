@@ -8,6 +8,16 @@
 
 <body class="bg-gray-100">
 
+<!-- NAVBAR -->
+<div class="bg-white shadow flex justify-between items-center px-6 py-4">
+    <h1 class="text-xl font-bold text-gray-800" th:text="${blog.name}"></h1>
+
+    <a href="/user"
+       class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        ← Volver al Panel
+    </a>
+</div>
+
 <main class="max-w-2xl mx-auto p-6">
 
     <!-- BLOG -->
@@ -50,6 +60,14 @@
 
         </div>
 
+    </div>
+
+    <!-- BOTÓN INFERIOR (extra, por comodidad) -->
+    <div class="mt-8">
+        <a href="/user"
+           class="inline-block bg-gray-700 text-white px-5 py-2 rounded-lg hover:bg-gray-800">
+            ← Volver al Panel de Usuario
+        </a>
     </div>
 
 </main>
