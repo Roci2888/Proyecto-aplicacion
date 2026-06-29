@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AuthController {
@@ -40,12 +41,27 @@ public class AuthController {
         }
 
         return "register";
+
     }
 
     @PostMapping("/auth/register")
-    public String registerUser(@ModelAttribute User user) {
-        userService.save(user);
-        return "redirect:/login?success";
+    public String registerUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
+        try {
+            // Verificar si el username ya existe
+            if (userService.existsByUsername(user.getUsername())) {
+                redirectAttributes.addFlashAttribute("error",
+                        "El usuario '" + user.getUsername() + "' ya existe. Por favor elige otro nombre.");
+                return "redirect:/register";
+            }
+            userService.save(user);
+            redirectAttributes.addFlashAttribute("success",
+                    "¡Registro exitoso! Ahora puedes iniciar sesión.");
+            return "redirect:/login?success";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Error al registrar usuario: " + e.getMessage());
+            return "redirect:/register";
+        }
     }
 
     @GetMapping("/login")
@@ -69,20 +85,27 @@ public class AuthController {
     @PostMapping("/auth/login")
     public String loginUser(@RequestParam String username,
                             @RequestParam String password,
-                            HttpSession session) {
+                            HttpSession session, RedirectAttributes redirectAttributes) {
+        try {
+            User user = userService.login(username, password);
 
-        User user = userService.login(username, password);
+            if (user == null) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Usuario o contraseña incorrectos");
+                return "redirect:/login?error";
+            }
 
-        if (user == null) {
+            session.setAttribute("usuario", user);
+
+            if ("ADMIN".equals(user.getRole())) {
+                return "redirect:/admin";
+            } else {return "redirect:/user";
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error interno del servidor");
             return "redirect:/login?error";
-        }
-
-        session.setAttribute("usuario", user);
-
-        if ("ADMIN".equals(user.getRole())) {
-            return "redirect:/admin";
-        } else {
-            return "redirect:/user";
         }
     }
 
@@ -138,6 +161,4 @@ public class AuthController {
 
         return "redirect:/admin";
     }
-
-
 }
