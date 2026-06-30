@@ -1,21 +1,16 @@
 package com.example.blogproject.controllers;
 
-import com.example.blogproject.models.Blog;
 import com.example.blogproject.models.Post;
-import com.example.blogproject.models.User;
-import com.example.blogproject.services.BlogService;
 import com.example.blogproject.services.ModerationService;
 import com.example.blogproject.services.PostService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -47,45 +42,55 @@ public class PostController {
 
             String resultado = moderationService.checkImage(imageUrl);
 
-            System.out.println("Respuesta Sightengine:");
-            System.out.println(resultado);
+            if (resultado == null) {
+                // No se pudo contactar a Sightengine (red caída, timeout, etc.)
+                System.out.println("Moderacion no disponible, se publica sin verificar: " + imageUrl);
+            } else {
 
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(resultado);
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode root = mapper.readTree(resultado);
 
-                double erotica = root.path("nudity")
-                        .path("erotica")
-                        .asDouble();
+                    if ("failure".equals(root.path("status").asText())) {
+                        // Error a nivel de API (credenciales invalidas, url inaccesible, etc.)
+                        String errorMsg = root.path("error").path("message").asText("desconocido");
+                        System.out.println("Sightengine devolvio failure: " + errorMsg);
+                    } else {
 
-                double firearm = root.path("weapon")
-                        .path("classes")
-                        .path("firearm")
-                        .asDouble();
+                        double erotica = root.path("nudity")
+                                .path("erotica")
+                                .asDouble();
 
-                double drugs = root.path("recreational_drug")
-                        .path("prob")
-                        .asDouble();
+                        double firearm = root.path("weapon")
+                                .path("classes")
+                                .path("firearm")
+                                .asDouble();
 
-                double alcohol = root.path("alcohol")
-                        .path("prob")
-                        .asDouble();
+                        double drugs = root.path("recreational_drug")
+                                .path("prob")
+                                .asDouble();
 
-                double violence = root.path("violence")
-                        .path("prob")
-                        .asDouble();
+                        double alcohol = root.path("alcohol")
+                                .path("prob")
+                                .asDouble();
 
-                if (erotica >= 0.4 ||
-                        firearm >= 0.4 ||
-                        drugs >= 0.4 ||
-                        alcohol >= 0.4 ||
-                        violence >= 0.4) {
+                        double violence = root.path("violence")
+                                .path("prob")
+                                .asDouble();
 
-                    return "redirect:/post/new?blogId=" + blogId + "&error=image_not_allowed";
+                        if (erotica >= 0.4 ||
+                                firearm >= 0.4 ||
+                                drugs >= 0.4 ||
+                                alcohol >= 0.4 ||
+                                violence >= 0.4) {
+
+                            return "redirect:/post/new?blogId=" + blogId + "&error=image_not_allowed";
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error al interpretar la respuesta de Sightengine: " + e.getMessage());
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 

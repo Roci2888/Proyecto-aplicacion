@@ -1,14 +1,16 @@
 package com.example.blogproject.models;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
+
 public class User {
 
     @Id
     private String id;
-
+    @Indexed(unique = true)
     private String username;
     private String password;
     private String role;
@@ -25,4 +27,8 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

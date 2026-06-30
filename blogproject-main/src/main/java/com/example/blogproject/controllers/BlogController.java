@@ -48,6 +48,12 @@ public class BlogController {
             return "redirect:/login";
         }
 
+        Blog blog = blogService.findById(id);
+
+        if (blog == null || !blog.getUserId().equals(user.getId())) {
+            return "redirect:/user";
+        }
+
         blogService.deleteBlog(id);
 
         return "redirect:/user";
