@@ -1,28 +1,64 @@
-# Art Gallery Project
+# ArtGallery BlogApp
+![Java 21](https://img.shields.io/badge/Java-21-blue?logo=java&logoColor=white)
+![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=spring&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-%2347A248?logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-available-blue?logo=docker&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-available-teal?logo=tailwindcss&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-Este es el código fuente de un proyecto de sitio web de red social.
+Descripción breve
+-----------------
+ArtGallery BlogApp es una aplicación web tipo red social que permite a los usuarios registrarse, crear su blog personal y publicar entradas con imágenes. Las imágenes se moderan automáticamente para detectar contenido inapropiado y existe un panel administrativo para la gestión de usuarios.
 
-Visita el sitio aquí: [Link]
+Tabla de contenidos
+-------------------
+- [Funcionalidades](#funcionalidades)
+- [Tecnologías usadas](#tecnologías-usadas)
+- [Requisitos previos](#requisitos-previos)
+- [Instalación y ejecución](#instalación-y-ejecución)
+  - [Con Docker (recomendado)](#con-docker-recomendado)
+  - [Sin Docker (desarrollo local)](#sin-docker-desarrollo-local)
+- [Variables de entorno](#variables-de-entorno)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Cómo ejecutar los tests](#cómo-ejecutar-los-tests)
+- [Autores](#autores)
+- [Licencia](#licencia)
 
-## Recursos de desarrollo
+Funcionalidades
+---------------
+- Registro e inicio de sesión de usuarios (contraseñas hasheadas con BCrypt).
+- Creación de un blog personal (uno por usuario).
+- Publicación de entradas con título, contenido e imagen (por URL).
+- Moderación automática de imágenes mediante la API de Sightengine (bloqueo de contenido inapropiado).
+- Panel de administración para gestionar usuarios.
+- Paginación de entradas.
+- Plantillas Thymeleaf para vistas del frontend.
 
-Este sitio web usa los diseños de [Thymeleaf](https://www.thymeleaf.org/), esta escrito en el lenguaje de programación Java. Usa los paquetes de desarrollo Spring Boot en Java.
+Tecnologías usadas
+------------------
+- Java 21
+- Spring Boot 3.5
+- MongoDB
+- Thymeleaf
+- TailwindCSS
+- Sightengine API (moderación de imágenes)
+- Maven (con wrapper ./mvnw)
+- Docker & Docker Compose
 
+Requisitos previos
+------------------
+- Git
+- Docker y Docker Compose (si vas a usar contenedores)
+- JDK 21 (para ejecución local sin Docker)
+- MongoDB si ejecutas localmente sin Docker
+- Credenciales de Sightengine para moderación de imágenes
 
-## Cómo usar
+Instalación y ejecución
+-----------------------
 
-Por ahora aun no se crea los Archivos Docker para levantarlo y poder ver la imagen.
-Paso a paso para poder ejecutar el codigo
-1. Ejecutar el codigo en la clase BlogproyectApplication
-2. Para poder hacer el registro e inicio de sesion se tiene que utilizar MongoDB para que el codigo funcione (Para nuestro caso se utiliza "mongod" que esta en la carpeta de MongoDB)
-Ruta MongoDB (Archivos de Programa -> MongoDB -> Server -> 8.3 -> bin -> mongod (Aplicacion)
-3. Abrir en el navegador en "http://localhost:8080"
-
-## Licencia
-
-MIT License
-
-## Autores
-- Emilio Rojas
-- Rocio Perez
-- Gaspar Rojas
+Con Docker (recomendado)
+------------------------
+1. Clona el repositorio:
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd Proyecto-aplicacion
