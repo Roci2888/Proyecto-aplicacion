@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+
+<body class="bg-gray-100" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<!-- NAVBAR -->
+<div class="bg-white shadow flex justify-between items-center px-6 py-4">
+    <h1 class="text-xl font-bold text-gray-800">Admin Panel</h1>
+
+    <div class="flex items-center space-x-4">
+        <span>Admin: <span th:text="${user.username}"></span></span>
+        <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg">
+            Cerrar sesión
+        </a>
+    </div>
+</div>
+
+<div class="flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white h-screen shadow-md p-5">
+        <nav class="space-y-4">
+
+            <a href="/admin"
+               class="block text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg">
+                Dashboard
+            </a>
+
+            <a href="/admin/users"
+               class="block text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg">
+                Usuarios
+            </a>
+
+            <a href="#"
+               class="block text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg">
+                Blogs
+            </a>
+
+            <a href="#"
+               class="block text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg">
+                Imágenes
+            </a>
+
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-6">
+
+        <h2 class="text-2xl font-bold mb-6">Usuarios</h2>
+
+        <div class="bg-white rounded-xl shadow p-6">
+
+            <table class="w-full text-left">
+                <thead>
+                <tr class="text-gray-500 border-b">
+                    <th>#</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Acción</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:if="${#lists.isEmpty(users)}">
+                    <td colspan="4" class="text-center py-4">
+                        No hay usuarios
+                    </td>
+                </tr>
+
+                <tr th:each="u, iter : ${users}">
+                    <td th:text="${iter.index + 1}"></td>
+                    <td th:text="${u.username}"></td>
+                    <td th:text="${u.role}"></td>
+                    <td>
+                        <form th:action="@{'/admin/delete/' + ${u.id}}" method="post">
+                            <button type="submit"
+                                    class="text-red-500 hover:underline">
+                                Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+</body>
+</html>
