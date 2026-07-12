@@ -13,6 +13,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.HttpHeaders;
 
 
@@ -48,14 +49,13 @@ public class SightengineService implements ContentModerationPort {
         return new RestTemplate(factory);
     }
 
+
     @Override
     public boolean moderateAndVerifyFile(MultipartFile file) {
         try {
-            // 1. Configuramos las cabeceras para enviar un formulario con archivo (Multipart)
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-            // 2. Convertimos el archivo subido a un recurso que RestTemplate pueda leer
             ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
                 @Override
                 public String getFilename() {
@@ -63,47 +63,71 @@ public class SightengineService implements ContentModerationPort {
                 }
             };
 
-            // 3. Juntamos todos los parámetros del formulario
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("media", fileResource); // El archivo va aquí
-
-            // Solicitamos tanto el modelo de desnudez como el de violencia
+            body.add("media", fileResource);
             body.add("models", MODELS);
-
             body.add("api_user", apiUser);
             body.add("api_secret", apiSecret);
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            // 4. Hacemos la petición POST a Sightengine
             SightengineResponse response =
                     restTemplate.postForObject(SIGHTENGINE_URL, requestEntity, SightengineResponse.class);
 
-            // 5. Análisis combinado de Desnudez y Violencia
-            if (response != null && "success".equals(response.getStatus())) {
-                boolean isNuditySafe = true;
-                boolean isViolenceSafe = true;
-
-                // Validar bloque de Desnudez (Safe debe ser mayor al 85%)
-                if (response.getNudity() != null) {
-                    isNuditySafe = response.getNudity().getSafe() > NUDITY_SAFE_THRESHOLD;
-                }
-
-                // Validar bloque de Violencia (Armas, heridas y violencia gráfica deben ser menores al 15%)
-                if (response.getViolence() != null) {
-                    isViolenceSafe = response.getViolence().getWeapon() < VIOLENCE_MAX_THRESHOLD
-                            && response.getViolence().getInjury() < VIOLENCE_MAX_THRESHOLD
-                            && response.getViolence().getGraphicViolence() < VIOLENCE_MAX_THRESHOLD;
-                }
-
-                // La imagen se aprueba únicamente si supera ambos filtros de seguridad
-                return isNuditySafe && isViolenceSafe;
-            }
-            return false;
+            return isContentSafe(response);
 
         } catch (Exception e) {
-            logger.error("Error al conectar con Sightengine: {}", e.getMessage(), e);
+            logger.error("Error al conectar con Sightengine (archivo): {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /**
+     * Modera una imagen indicada por su URL pública. Lo usan los controladores que
+     * reciben un enlace de imagen (p. ej. {@code PostController}, {@code ModerationController}).
+     */
+    public boolean moderateAndVerify(String imageUrl) {
+        try {
+            String uri = UriComponentsBuilder.fromHttpUrl(SIGHTENGINE_URL)
+                    .queryParam("url", imageUrl)
+                    .queryParam("models", MODELS)
+                    .queryParam("api_user", apiUser)
+                    .queryParam("api_secret", apiSecret)
+                    .encode()
+                    .toUriString();
+
+            SightengineResponse response = restTemplate.getForObject(uri, SightengineResponse.class);
+
+            return isContentSafe(response);
+
+        } catch (Exception e) {
+            logger.error("Error al conectar con Sightengine (URL): {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Comprobación de seguridad compartida por ambos enfoques: la imagen se aprueba
+     * solo si supera los filtros de desnudez (Safe > 85%) y violencia (< 15%).
+     */
+    private boolean isContentSafe(SightengineResponse response) {
+        if (response == null || !"success".equals(response.getStatus())) {
+            return false;
+        }
+
+        boolean isNuditySafe = true;
+        boolean isViolenceSafe = true;
+
+        if (response.getNudity() != null) {
+            isNuditySafe = response.getNudity().getSafe() > NUDITY_SAFE_THRESHOLD;
+        }
+
+        if (response.getViolence() != null) {
+            isViolenceSafe = response.getViolence().getWeapon() < VIOLENCE_MAX_THRESHOLD
+                    && response.getViolence().getInjury() < VIOLENCE_MAX_THRESHOLD
+                    && response.getViolence().getGraphicViolence() < VIOLENCE_MAX_THRESHOLD;
+        }
+
+        return isNuditySafe && isViolenceSafe;
     }
 }

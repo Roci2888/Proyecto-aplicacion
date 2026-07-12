@@ -3,7 +3,6 @@ package com.example.blogproject.web.controller;
 import com.example.blogproject.domain.model.Post;
 import com.example.blogproject.application.service.PostService;
 import com.example.blogproject.infrastructure.moderation.SightengineService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,12 +14,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDateTime;
 
 @Controller
-@RequiredArgsConstructor
 public class PostController {
 
     @Autowired
     private PostService postService;
-    private final SightengineService sightengineService;
+    @Autowired
+    private SightengineService sightengineService;
 
     @GetMapping("/post/new")
     public String newPostForm(@RequestParam String blogId, Model model) {
