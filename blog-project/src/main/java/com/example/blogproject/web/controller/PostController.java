@@ -3,12 +3,14 @@ package com.example.blogproject.web.controller;
 import com.example.blogproject.domain.model.Post;
 import com.example.blogproject.application.service.PostService;
 import com.example.blogproject.infrastructure.moderation.SightengineService;
+import com.example.blogproject.infrastructure.storage.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
@@ -20,6 +22,8 @@ public class PostController {
     private PostService postService;
     @Autowired
     private SightengineService sightengineService;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping("/post/new")
     public String newPostForm(@RequestParam String blogId, Model model) {
@@ -32,16 +36,23 @@ public class PostController {
             @RequestParam String blogId,
             @RequestParam String title,
             @RequestParam String content,
-            @RequestParam(required = false) String imageUrl,
+            @RequestParam("imageFile") MultipartFile imageFile,
             @RequestParam(required = false) String imageCaption,
             RedirectAttributes redirectAttributes
-
     ) {
         try {
-            // 1. Verificar si hay URL de imagen
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                // 2. Moderar la imagen
-                boolean isSafe = sightengineService.moderateAndVerify(imageUrl);
+            Post post = new Post();
+            post.setBlogId(blogId);
+            post.setTitle(title);
+            post.setContent(content);
+            post.setImageCaption(imageCaption);
+            post.setCreatedAt(LocalDateTime.now());
+
+            // 1. Verificar si el usuario subió un archivo
+            if (imageFile != null && !imageFile.isEmpty()) {
+
+                // 2. Moderar el archivo con Sightengine
+                boolean isSafe = sightengineService.moderateAndVerifyFile(imageFile);
 
                 if (!isSafe) {
                     redirectAttributes.addFlashAttribute("error",
@@ -49,18 +60,15 @@ public class PostController {
                     return "redirect:/post/new?blogId=" + blogId;
                 }
 
+                // 3. Guardar el archivo en disco y quedarnos con el nombre único
+                String uniqueFileName = fileStorageService.saveImage(imageFile);
+                post.setImageUrl(uniqueFileName);
+
                 redirectAttributes.addFlashAttribute("success",
-                        "¡Imagen moderada y aprobada correctamente!");
+                        "¡Imagen moderada, aprobada y subida correctamente!");
             }
 
-            Post post = new Post();
-            post.setBlogId(blogId);
-            post.setTitle(title);
-            post.setContent(content);
-            post.setImageUrl(imageUrl);
-            post.setImageCaption(imageCaption);
-            post.setCreatedAt(LocalDateTime.now());
-
+            // 4. Guardar el post
             postService.save(post);
 
             redirectAttributes.addFlashAttribute("success", "¡Post creado exitosamente!");

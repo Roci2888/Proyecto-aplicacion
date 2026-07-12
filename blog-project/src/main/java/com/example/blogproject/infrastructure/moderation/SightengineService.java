@@ -24,11 +24,16 @@ public class SightengineService implements ContentModerationPort {
 
     private static final String SIGHTENGINE_URL = "https://api.sightengine.com/1.0/check.json";
 
-    private static final String MODELS = "nudity,violence";
+    // Modelos: nudity (desnudez), wad (armas/alcohol/drogas), gore (sangre/violencia gráfica)
+    private static final String MODELS = "nudity,wad,gore";
 
+    /** La desnudez es segura si "safe" supera este umbral. */
     private static final double NUDITY_SAFE_THRESHOLD = 0.85;
 
-    private static final double VIOLENCE_MAX_THRESHOLD = 0.15;
+    /** Umbral máximo tolerado para armas, drogas/alcohol y contenido gráfico. */
+    private static final double WEAPON_MAX_THRESHOLD = 0.15;
+    private static final double DRUGS_ALCOHOL_MAX_THRESHOLD = 0.30;
+    private static final double GORE_MAX_THRESHOLD = 0.15;
 
     private static final int CONNECT_TIMEOUT_MS = 5_000;
     private static final int READ_TIMEOUT_MS = 10_000;
@@ -41,14 +46,12 @@ public class SightengineService implements ContentModerationPort {
 
     private final RestTemplate restTemplate = buildRestTemplate();
 
-    /** Construye un RestTemplate con timeouts para evitar peticiones colgadas. */
     private static RestTemplate buildRestTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
         factory.setReadTimeout(READ_TIMEOUT_MS);
         return new RestTemplate(factory);
     }
-
 
     @Override
     public boolean moderateAndVerifyFile(MultipartFile file) {
@@ -59,7 +62,7 @@ public class SightengineService implements ContentModerationPort {
             ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
                 @Override
                 public String getFilename() {
-                    return file.getOriginalFilename(); // Necesario para que la API detecte el archivo
+                    return file.getOriginalFilename();
                 }
             };
 
@@ -82,10 +85,6 @@ public class SightengineService implements ContentModerationPort {
         }
     }
 
-    /**
-     * Modera una imagen indicada por su URL pública. Lo usan los controladores que
-     * reciben un enlace de imagen (p. ej. {@code PostController}, {@code ModerationController}).
-     */
     public boolean moderateAndVerify(String imageUrl) {
         try {
             String uri = UriComponentsBuilder.fromHttpUrl(SIGHTENGINE_URL)
@@ -106,28 +105,28 @@ public class SightengineService implements ContentModerationPort {
         }
     }
 
-    /**
-     * Comprobación de seguridad compartida por ambos enfoques: la imagen se aprueba
-     * solo si supera los filtros de desnudez (Safe > 85%) y violencia (< 15%).
-     */
     private boolean isContentSafe(SightengineResponse response) {
         if (response == null || !"success".equals(response.getStatus())) {
             return false;
         }
 
         boolean isNuditySafe = true;
-        boolean isViolenceSafe = true;
-
-        if (response.getNudity() != null) {
+        if (response.getNudity() != null && response.getNudity().getSafe() != null) {
             isNuditySafe = response.getNudity().getSafe() > NUDITY_SAFE_THRESHOLD;
         }
 
-        if (response.getViolence() != null) {
-            isViolenceSafe = response.getViolence().getWeapon() < VIOLENCE_MAX_THRESHOLD
-                    && response.getViolence().getInjury() < VIOLENCE_MAX_THRESHOLD
-                    && response.getViolence().getGraphicViolence() < VIOLENCE_MAX_THRESHOLD;
-        }
+        boolean isWeaponSafe = isBelowThreshold(response.getWeapon(), WEAPON_MAX_THRESHOLD);
+        boolean isDrugsSafe = isBelowThreshold(response.getDrugs(), DRUGS_ALCOHOL_MAX_THRESHOLD);
+        boolean isAlcoholSafe = isBelowThreshold(response.getAlcohol(), DRUGS_ALCOHOL_MAX_THRESHOLD);
 
-        return isNuditySafe && isViolenceSafe;
+        boolean isGoreSafe = response.getGore() == null
+                || isBelowThreshold(response.getGore().getProb(), GORE_MAX_THRESHOLD);
+
+        return isNuditySafe && isWeaponSafe && isDrugsSafe && isAlcoholSafe && isGoreSafe;
+    }
+
+    /** Un indicador es seguro si no fue reportado (null) o si está por debajo del umbral. */
+    private boolean isBelowThreshold(Double value, double threshold) {
+        return value == null || value < threshold;
     }
 }

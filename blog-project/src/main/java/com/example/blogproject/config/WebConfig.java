@@ -16,12 +16,18 @@ public class WebConfig implements WebMvcConfigurer {
     public WebConfig(@Value("${app.uploads.dir:uploads}") String uploadsDir) {
         this.uploadsDir = uploadsDir;
     }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path dir = Paths.get(uploadsDir).toAbsolutePath().normalize();
-        // Ubicación principal: directorio externo configurable. Como respaldo se
-        // mantiene classpath:/static/uploads/ para no romper imágenes ya existentes.
+        // La ubicación DEBE terminar en "/" para que Spring resuelva los ficheros
+        // dentro del directorio. Path.toUri() no siempre añade la barra si la carpeta
+        // aún no existe al arrancar, así que la garantizamos aquí.
+        String location = dir.toUri().toString();
+        if (!location.endsWith("/")) {
+            location = location + "/";
+        }
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(dir.toUri().toString(), "classpath:/static/uploads/");
+                .addResourceLocations(location, "classpath:/static/uploads/");
     }
 }
