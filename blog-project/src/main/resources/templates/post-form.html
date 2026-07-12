@@ -14,7 +14,6 @@
         Crear nuevo post
     </h2>
 
-    <!-- ✅ MENSAJES DE ÉXITO Y ERROR -->
     <div th:if="${success}" class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
         <span th:text="${success}"></span>
     </div>
@@ -23,17 +22,15 @@
         <span th:text="${error}"></span>
     </div>
 
-    <!-- ⚠️ MENSAJE DE ADVERTENCIA SOBRE MODERACIÓN -->
     <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg text-sm">
         <strong>ℹ️ Nota:</strong> Las imágenes serán moderadas automáticamente.
         No se permitirá contenido inapropiado.
     </div>
 
-    <form action="/post/create" method="post" class="space-y-4">
+    <form action="/post/create" method="post" enctype="multipart/form-data" class="space-y-4">
 
         <input type="hidden" name="blogId" th:value="${blogId}">
 
-        <!-- TÍTULO -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
             <input type="text" name="title"
@@ -42,7 +39,6 @@
                    required>
         </div>
 
-        <!-- CONTENIDO -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Contenido *</label>
             <textarea name="content"
@@ -52,17 +48,15 @@
                       required></textarea>
         </div>
 
-        <!-- IMAGEN (URL) -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">URL de la imagen</label>
-            <input type="url" name="imageUrl"
-                   id="imageUrl"
-                   placeholder="https://ejemplo.com/imagen.jpg"
-                   class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   oninput="previewImage()">
-            <p class="text-xs text-gray-500 mt-1">La imagen será analizada automáticamente</p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subir Imagen</label>
+            <input type="file" name="imageFile"
+                   id="imageFile"
+                   accept="image/*"
+                   class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                   onchange="previewImage()">
+            <p class="text-xs text-gray-500 mt-1">La imagen será analizada automáticamente antes de publicarse</p>
 
-            <!-- Previsualización de imagen -->
             <div id="imagePreview" class="mt-3 hidden">
                 <p class="text-sm font-medium text-gray-700 mb-1">Vista previa:</p>
                 <img id="preview" src="" alt="Vista previa"
@@ -70,7 +64,6 @@
             </div>
         </div>
 
-        <!-- DESCRIPCIÓN DE IMAGEN -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Descripción de la imagen</label>
             <input type="text" name="imageCaption"
@@ -78,7 +71,6 @@
                    class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
 
-        <!-- BOTONES -->
         <div class="flex gap-3 pt-2">
             <button type="submit"
                     class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-200 font-medium">
@@ -97,18 +89,21 @@
 
 <script>
     function previewImage() {
-        const url = document.getElementById('imageUrl').value;
+        const fileInput = document.getElementById('imageFile');
         const previewDiv = document.getElementById('imagePreview');
         const previewImg = document.getElementById('preview');
 
-        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-            previewImg.src = url;
-            previewDiv.classList.remove('hidden');
+        const file = fileInput.files[0];
 
-            // Manejar error de carga de imagen
-            previewImg.onerror = function() {
-                previewDiv.classList.add('hidden');
-            };
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewDiv.classList.remove('hidden');
+            }
+
+            reader.readAsDataURL(file);
         } else {
             previewDiv.classList.add('hidden');
         }
