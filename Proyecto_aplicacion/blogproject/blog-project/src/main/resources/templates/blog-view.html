@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${blog.name}">Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<main class="max-w-2xl mx-auto p-6">
+
+    <div th:if="${success}" class="mb-6 p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl shadow-sm flex items-center gap-2">
+        <span>✨</span>
+        <strong th:text="${success}"></strong>
+    </div>
+
+    <div th:if="${error}" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl shadow-sm flex items-center gap-2">
+        <span>⚠️</span>
+        <strong th:text="${error}"></strong>
+    </div>
+
+    <div class="mb-6 flex justify-between items-center">
+        <a th:href="@{/user?view=posts}" class="text-sm text-blue-500 hover:underline flex items-center gap-1">
+            ← Volver al panel
+        </a>
+        <a th:href="@{/post/new(blogId=${blog.id})}" class="text-sm bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition">
+            + Nuevo Post
+        </a>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-2" th:text="${blog.name}"></h1>
+    <p class="text-gray-600 mb-6" th:text="${blog.description}"></p>
+
+    <p th:if="${posts == null or #lists.isEmpty(posts)}" class="text-gray-500 text-center py-8">
+        No hay publicaciones aún. ¡Sé el primero en escribir una!
+    </p>
+
+    <div class="space-y-6">
+
+        <div th:each="post : ${posts}" class="bg-white rounded-xl shadow overflow-hidden">
+
+            <div th:if="${post.imageUrl != null and !#strings.isEmpty(post.imageUrl)}" class="relative flex justify-center bg-gray-50 border-b border-gray-100">
+
+                <img th:src="@{/uploads/{img}(img=${post.imageUrl})}"
+                     th:alt="${!#strings.isEmpty(post.imageCaption) ? post.imageCaption : 'Imagen del post'}"
+                     class="w-full h-auto max-h-[500px] object-scale-down">
+
+                <div class="absolute top-3 right-3 bg-green-500/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-md backdrop-blur-sm flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Imagen Moderada por IA
+                </div>
+            </div>
+
+            <div class="p-4">
+
+                <div th:if="${post.imageUrl == null or #strings.isEmpty(post.imageUrl)}" class="mb-2 inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-md font-medium">
+                    ✨ Post verificado
+                </div>
+
+                <h2 class="text-xl font-bold mb-1" th:text="${post.title}"></h2>
+
+                <p class="text-gray-700 mb-3 whitespace-pre-line" th:text="${post.content}"></p>
+
+                <p th:if="${post.imageCaption != null and !#strings.isEmpty(post.imageCaption)}"
+                   class="text-sm italic text-gray-500 mb-3"
+                   th:text="${post.imageCaption}"></p>
+
+                <p th:if="${post.createdAt != null}"
+                   class="text-xs text-gray-400"
+                   th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}">
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>
