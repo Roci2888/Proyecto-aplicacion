@@ -1,7 +1,8 @@
 package com.example.blogproject;
 
-import com.example.blogproject.models.Post;
-import com.example.blogproject.services.PostService;
+import com.example.blogproject.domain.model.Post;
+import com.example.blogproject.application.service.PostService;
+import com.example.blogproject.infrastructure.moderation.SightengineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;

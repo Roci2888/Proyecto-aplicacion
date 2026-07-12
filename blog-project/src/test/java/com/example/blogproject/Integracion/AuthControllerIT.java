@@ -1,7 +1,7 @@
 package com.example.blogproject.Integracion;
 
-import com.example.blogproject.models.User;
-import com.example.blogproject.repositories.UserRepository;
+import com.example.blogproject.domain.model.User;
+import com.example.blogproject.infrastructure.persistence.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

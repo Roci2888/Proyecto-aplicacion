@@ -1,6 +1,6 @@
 package com.example.blogproject.Unitarias;
 
-import com.example.blogproject.controllers.UserController;
+import com.example.blogproject.web.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -11,11 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import com.example.blogproject.models.Blog;
-import com.example.blogproject.models.Post;
-import com.example.blogproject.models.User;
-import com.example.blogproject.services.BlogService;
-import com.example.blogproject.services.PostService;
+import com.example.blogproject.domain.model.Blog;
+import com.example.blogproject.domain.model.Post;
+import com.example.blogproject.domain.model.User;
+import com.example.blogproject.application.service.BlogService;
+import com.example.blogproject.application.service.PostService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

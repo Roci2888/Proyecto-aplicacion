@@ -1,5 +1,6 @@
 package com.example.blogproject;
 
+import com.example.blogproject.infrastructure.moderation.SightengineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

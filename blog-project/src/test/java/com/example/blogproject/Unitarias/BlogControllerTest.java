@@ -1,15 +1,14 @@
 package com.example.blogproject.Unitarias;
 
-import com.example.blogproject.controllers.BlogController;
-import com.example.blogproject.models.Blog;
-import com.example.blogproject.models.Post;
-import com.example.blogproject.models.User;
-import com.example.blogproject.services.BlogService;
-import com.example.blogproject.services.PostService;
+import com.example.blogproject.web.controller.BlogController;
+import com.example.blogproject.domain.model.Blog;
+import com.example.blogproject.domain.model.Post;
+import com.example.blogproject.domain.model.User;
+import com.example.blogproject.application.service.BlogService;
+import com.example.blogproject.application.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;

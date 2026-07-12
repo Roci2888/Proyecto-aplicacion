@@ -1,11 +1,11 @@
 package com.example.blogproject.Integracion;
 
-import com.example.blogproject.models.Blog;
-import com.example.blogproject.models.Post;
-import com.example.blogproject.models.User;
-import com.example.blogproject.repositories.BlogRepository;
-import com.example.blogproject.repositories.PostRepository;
-import com.example.blogproject.repositories.UserRepository;
+import com.example.blogproject.domain.model.Blog;
+import com.example.blogproject.domain.model.Post;
+import com.example.blogproject.domain.model.User;
+import com.example.blogproject.infrastructure.persistence.BlogRepository;
+import com.example.blogproject.infrastructure.persistence.PostRepository;
+import com.example.blogproject.infrastructure.persistence.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

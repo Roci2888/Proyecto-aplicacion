@@ -1,12 +1,10 @@
 package com.example.blogproject.Unitarias;
 
-import com.example.blogproject.controllers.AuthController;
+import com.example.blogproject.web.controller.AuthController;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.example.blogproject.models.User;
-import com.example.blogproject.services.UserService;
+import com.example.blogproject.domain.model.User;
+import com.example.blogproject.application.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
