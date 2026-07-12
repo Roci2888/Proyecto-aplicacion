@@ -1,108 +1,109 @@
 package com.example.blogproject.infrastructure.moderation;
 
-import com.example.blogproject.SightengineProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.example.blogproject.domain.port.ContentModerationPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
 
-@Slf4j
+
 @Service
-@RequiredArgsConstructor
-public class SightengineService {
+public class SightengineService implements ContentModerationPort {
 
-    private final SightengineProperties sightengineProperties;
-    private final RestTemplate restTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(SightengineService.class);
 
-    /**
-     * Moderar imagen desde URL
-     */
-    public SightengineResponse moderateImage(String imageUrl) {
-        return moderateImage(imageUrl, sightengineProperties.getModels());
+    private static final String SIGHTENGINE_URL = "https://api.sightengine.com/1.0/check.json";
+
+    private static final String MODELS = "nudity,violence";
+
+    private static final double NUDITY_SAFE_THRESHOLD = 0.85;
+
+    private static final double VIOLENCE_MAX_THRESHOLD = 0.15;
+
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
+    @Value("${sightengine.api.user:}")
+    private String apiUser;
+
+    @Value("${sightengine.api.secret:}")
+    private String apiSecret;
+
+    private final RestTemplate restTemplate = buildRestTemplate();
+
+    /** Construye un RestTemplate con timeouts para evitar peticiones colgadas. */
+    private static RestTemplate buildRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        factory.setReadTimeout(READ_TIMEOUT_MS);
+        return new RestTemplate(factory);
     }
 
-    public SightengineResponse moderateImage(String imageUrl, String models) {
-        log.info("Moderando imagen desde URL: {}", imageUrl);
-
-        String url = String.format("%s?api_user=%s&api_secret=%s&models=%s&url=%s",
-                sightengineProperties.getUrl(),
-                sightengineProperties.getUser(),
-                sightengineProperties.getSecret(),
-                models,
-                imageUrl);
-
+    @Override
+    public boolean moderateAndVerifyFile(MultipartFile file) {
         try {
-            ResponseEntity<SightengineResponse> response = restTemplate.getForEntity(
-                    url,
-                    SightengineResponse.class
-            );
+            // 1. Configuramos las cabeceras para enviar un formulario con archivo (Multipart)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                log.info("Moderación completada exitosamente");
-                return response.getBody();
-            } else {
-                throw new RuntimeException("Error en la moderación: " + response.getStatusCode());
+            // 2. Convertimos el archivo subido a un recurso que RestTemplate pueda leer
+            ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename(); // Necesario para que la API detecte el archivo
+                }
+            };
+
+            // 3. Juntamos todos los parámetros del formulario
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("media", fileResource); // El archivo va aquí
+
+            // Solicitamos tanto el modelo de desnudez como el de violencia
+            body.add("models", MODELS);
+
+            body.add("api_user", apiUser);
+            body.add("api_secret", apiSecret);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // 4. Hacemos la petición POST a Sightengine
+            SightengineResponse response =
+                    restTemplate.postForObject(SIGHTENGINE_URL, requestEntity, SightengineResponse.class);
+
+            // 5. Análisis combinado de Desnudez y Violencia
+            if (response != null && "success".equals(response.getStatus())) {
+                boolean isNuditySafe = true;
+                boolean isViolenceSafe = true;
+
+                // Validar bloque de Desnudez (Safe debe ser mayor al 85%)
+                if (response.getNudity() != null) {
+                    isNuditySafe = response.getNudity().getSafe() > NUDITY_SAFE_THRESHOLD;
+                }
+
+                // Validar bloque de Violencia (Armas, heridas y violencia gráfica deben ser menores al 15%)
+                if (response.getViolence() != null) {
+                    isViolenceSafe = response.getViolence().getWeapon() < VIOLENCE_MAX_THRESHOLD
+                            && response.getViolence().getInjury() < VIOLENCE_MAX_THRESHOLD
+                            && response.getViolence().getGraphicViolence() < VIOLENCE_MAX_THRESHOLD;
+                }
+
+                // La imagen se aprueba únicamente si supera ambos filtros de seguridad
+                return isNuditySafe && isViolenceSafe;
             }
+            return false;
+
         } catch (Exception e) {
-            log.error("Error al moderar imagen: {}", e.getMessage());
-            throw new RuntimeException("Error al conectar con SightEngine: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Verificar si la imagen es segura basado en umbrales
-     */
-    public boolean isImageSafe(SightengineResponse response) {
-        if (response == null) return false;
-
-        // Umbrales de seguridad (ajústalos según tu necesidad)
-        double nudityThreshold = 0.3;    // 30% de probabilidad de desnudo
-        double offensiveThreshold = 0.4;  // 40% de probabilidad de contenido ofensivo
-        double goreThreshold = 0.4;       // 40% de probabilidad de violencia gráfica
-
-        // Verificar nudity
-        if (response.getNudity() != null) {
-            Double nudeScore = response.getNudity().get("raw");
-            if (nudeScore != null && nudeScore > nudityThreshold) {
-                log.warn("Imagen rechazada por desnudo: score={}", nudeScore);
-                return false;
-            }
-        }
-
-        // Verificar contenido ofensivo
-        if (response.getOffensive() != null) {
-            Double offensiveScore = response.getOffensive().get("prob");
-            if (offensiveScore != null && offensiveScore > offensiveThreshold) {
-                log.warn("Imagen rechazada por contenido ofensivo: score={}", offensiveScore);
-                return false;
-            }
-        }
-
-        // Verificar gore
-        if (response.getGore() != null) {
-            Double goreScore = response.getGore().get("prob");
-            if (goreScore != null && goreScore > goreThreshold) {
-                log.warn("Imagen rechazada por violencia gráfica: score={}", goreScore);
-                return false;
-            }
-        }
-
-        log.info("Imagen aprobada: todos los scores están dentro del umbral");
-        return true;
-    }
-
-    /**
-     * Método completo: modera y verifica la imagen
-     */
-    public boolean moderateAndVerify(String imageUrl) {
-        try {
-            SightengineResponse response = moderateImage(imageUrl);
-            return isImageSafe(response);
-        } catch (Exception e) {
-            log.error("Error en el proceso de moderación: {}", e.getMessage());
-            return false; // Por seguridad, rechazar si hay error
+            logger.error("Error al conectar con Sightengine: {}", e.getMessage(), e);
+            return false;
         }
     }
 }
