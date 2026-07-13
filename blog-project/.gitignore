@@ -1,0 +1,13 @@
+# Secretos y configuración local
+.env
+*.env
+
+# Artefactos de compilación
+target/
+
+# Archivos del IDE
+.idea/
+*.iml
+
+# Imágenes subidas por usuarios (datos de runtime, no código)
+uploads/

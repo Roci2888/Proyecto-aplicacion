@@ -1,0 +1,24 @@
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db     # los datos sobreviven al reinicio
+
+  app:
+    build: .
+    ports:
+      - "8082:8082"
+    environment:
+      # "mongo" es el nombre del servicio: Docker lo resuelve como hostname
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/galeria
+      APP_UPLOADS_DIR: /app/uploads
+      SIGHTENGINE_API_USER: ${SIGHTENGINE_API_USER}
+      SIGHTENGINE_API_SECRET: ${SIGHTENGINE_API_SECRET}
+    volumes:
+      - uploads-data:/app/uploads   # las imágenes subidas sobreviven al reinicio
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:
+  uploads-data:
