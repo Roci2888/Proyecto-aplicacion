@@ -1,9 +1,12 @@
 package com.example.blogproject.web.controller;
 
+import com.example.blogproject.domain.model.ModerationResult;
 import com.example.blogproject.domain.model.Post;
 import com.example.blogproject.application.service.PostService;
 import com.example.blogproject.infrastructure.moderation.SightengineService;
 import com.example.blogproject.infrastructure.storage.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +20,8 @@ import java.time.LocalDateTime;
 
 @Controller
 public class PostController {
+
+    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
 
     @Autowired
     private PostService postService;
@@ -52,11 +57,19 @@ public class PostController {
             if (imageFile != null && !imageFile.isEmpty()) {
 
                 // 2. Moderar el archivo con Sightengine
-                boolean isSafe = sightengineService.moderateAndVerifyFile(imageFile);
+                ModerationResult moderationResult = sightengineService.moderateAndVerifyFile(imageFile);
 
-                if (!isSafe) {
-                    redirectAttributes.addFlashAttribute("error",
-                            "La imagen no puede ser publicada porque contiene contenido inapropiado.");
+                logger.info("Resultado moderación: allowed={}, reasonCode={}",
+                        moderationResult.isAllowed(), moderationResult.getReasonCode());
+
+                if (!moderationResult.isAllowed()) {
+                    redirectAttributes.addFlashAttribute("error", moderationResult.getUserMessage());
+                    redirectAttributes.addFlashAttribute("moderationReasonCode", moderationResult.getReasonCode());
+
+                    logger.warn("Imagen rechazada. reasonCode={}, debug={}",
+                            moderationResult.getReasonCode(),
+                            moderationResult.getDebugMessage());
+
                     return "redirect:/post/new?blogId=" + blogId;
                 }
 
@@ -64,6 +77,7 @@ public class PostController {
                 String uniqueFileName = fileStorageService.saveImage(imageFile);
                 post.setImageUrl(uniqueFileName);
 
+                redirectAttributes.addFlashAttribute("moderationReasonCode", moderationResult.getReasonCode());
                 redirectAttributes.addFlashAttribute("success",
                         "¡Imagen moderada, aprobada y subida correctamente!");
             }
@@ -75,8 +89,10 @@ public class PostController {
             return "redirect:/blog/" + blogId;
 
         } catch (Exception e) {
+            // Registrar el detalle técnico sin filtrarlo al usuario.
+            logger.error("Error al crear el post", e);
             redirectAttributes.addFlashAttribute("error",
-                    "Error al crear el post: " + e.getMessage());
+                    "No se pudo crear el post. Inténtalo de nuevo más tarde.");
             return "redirect:/post/new?blogId=" + blogId;
         }
     }

@@ -1,5 +1,6 @@
 package com.example.blogproject.domain.port;
 
+import com.example.blogproject.domain.model.ModerationResult;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ContentModerationPort {
@@ -8,7 +9,8 @@ public interface ContentModerationPort {
      * Analiza el fichero y decide si es publicable.
      *
      * @param file imagen a moderar
-     * @return {@code true} si el contenido es seguro; {@code false} si debe bloquearse
+     * @return el resultado de la moderación, con el código de motivo y los
+     *         mensajes de usuario y de depuración
      */
-    boolean moderateAndVerifyFile(MultipartFile file);
+    ModerationResult moderateAndVerifyFile(MultipartFile file);
 }
