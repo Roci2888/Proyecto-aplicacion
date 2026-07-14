@@ -49,7 +49,10 @@ class AuthControllerIT {
         // Verificar datos guardados
         User savedUser = userRepository.findByUsername("nuevousuario").get();
         assertEquals("nuevousuario", savedUser.getUsername());
-        assertEquals("secure123", savedUser.getPassword());
+        // C1: la contraseña se guarda hasheada (BCrypt), NO en texto plano
+        assertNotEquals("secure123", savedUser.getPassword());
+        assertTrue(savedUser.getPassword().startsWith("$2"),
+                "La contraseña debe guardarse hasheada (BCrypt)");
         assertEquals("USER", savedUser.getRole());
 
         System.out.println("Usuario guardado con ID: " + savedUser.getId());

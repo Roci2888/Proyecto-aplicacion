@@ -241,7 +241,7 @@ class BlogControllerIT {
             post.setTitle("Post " + i);
             post.setContent("Contenido del post " + i);
             post.setBlogId(blogId);
-            post.setId(testUser.getId());
+            post.setCreatedAt(java.time.LocalDateTime.now());   // opcional, para el orden por fecha
             posts.add(post);
         }
         postRepository.saveAll(posts);

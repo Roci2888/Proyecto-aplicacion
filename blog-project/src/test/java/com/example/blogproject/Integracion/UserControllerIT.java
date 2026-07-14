@@ -227,7 +227,6 @@ class UserControllerIT {
             post.setTitle("Post " + i);
             post.setContent("Contenido del post " + i);
             post.setBlogId(blogId);
-            post.setId(testUser.getId());
             post.setCreatedAt(LocalDateTime.now().minusDays(count - i)); // Posts más recientes primero
             posts.add(post);
         }
