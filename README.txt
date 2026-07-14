@@ -1,3 +1,5 @@
+proyecto-aplicacion-production-260a.up.railway.app
+
 # Galería de Blogs — Plataforma con moderación de imágenes por IA
 
 Aplicación web de blogs con galería de imágenes desarrollada en **Java 21 + Spring Boot**.
